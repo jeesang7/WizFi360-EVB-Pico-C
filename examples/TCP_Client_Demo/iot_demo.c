@@ -15,6 +15,7 @@
 #include "port_common.h"
 #include "timer.h"
 #include "iot_socket.h"
+#include "pico/stdlib.h"
 
 /**
  * ----------------------------------------------------------------------------------------------------
@@ -41,10 +42,17 @@ static uint8_t g_tcp_send_buf[ETHERNET_BUF_MAX_SIZE] = {
 static uint8_t g_tcp_recv_buf[ETHERNET_BUF_MAX_SIZE] = {
     0,
 };
-static uint8_t g_tcp_target_ip[4] = {192, 168, 2, 101};
+static uint8_t g_tcp_target_ip[4] = {192, 168, 0, 27};
 
 /* Timer  */
 static volatile uint32_t g_msec_cnt = 0;
+
+const uint BTN_PIN_1 = 13;
+const uint LED_PIN_1 = 14;
+const uint BTN_PIN_2 = 12;
+const uint LED_PIN_2 = 15;
+const uint BTN_PIN_3 = 9;
+const uint LED_PIN_3 = 10;
 
 /**
  * ----------------------------------------------------------------------------------------------------
@@ -99,7 +107,82 @@ int demo( void )
         if(retval > 0){
             printf("recv_timeout retval = %d\r\n", retval);
             printf("%.*s\r\n", retval, g_tcp_recv_buf);
+
+            if (strncmp(g_tcp_recv_buf, "ledon1", 6) == 0) {
+                printf("receive ledon1 then gpio led1 on!\n");
+                gpio_put(LED_PIN_1, 1);
+            }
+
+            if (strncmp(g_tcp_recv_buf, "ledon2", 6) == 0) {
+                printf("receive ledon2 then gpio led2 on!\n");
+                gpio_put(LED_PIN_2, 1);
+            }
+
+            if (strncmp(g_tcp_recv_buf, "ledon3", 6) == 0) {
+                printf("receive ledon3 then gpio led3 on!\n");
+                gpio_put(LED_PIN_3, 1);
+            }
         }
+    }
+}
+
+int gpio_handler(void)
+{
+    // #1
+    gpio_init(BTN_PIN_1);
+    gpio_set_dir(BTN_PIN_1, GPIO_IN);
+    // We are using the button to pull down to 0v when pressed, so ensure that when
+    // unpressed, it uses internal pull ups. Otherwise when unpressed, the input will
+    // be floating.
+    gpio_pull_up(BTN_PIN_1);
+
+    gpio_init(LED_PIN_1);
+    gpio_set_dir(LED_PIN_1, GPIO_OUT);
+    gpio_put(LED_PIN_1, 0);
+    sleep_ms(1000);
+    gpio_put(LED_PIN_1, 1);
+
+    // #2
+    gpio_init(BTN_PIN_2);
+    gpio_set_dir(BTN_PIN_2, GPIO_IN);
+    gpio_pull_up(BTN_PIN_2);
+
+    gpio_init(LED_PIN_2);
+    gpio_set_dir(LED_PIN_2, GPIO_OUT);
+    gpio_put(LED_PIN_2, 0);
+    sleep_ms(1000);
+    gpio_put(LED_PIN_2, 1);
+
+    // #3
+    gpio_init(BTN_PIN_3);
+    gpio_set_dir(BTN_PIN_3, GPIO_IN);
+    gpio_pull_up(BTN_PIN_3);
+
+    gpio_init(LED_PIN_3);
+    gpio_set_dir(LED_PIN_3, GPIO_OUT);
+    gpio_put(LED_PIN_3, 0);
+    sleep_ms(1000);
+    gpio_put(LED_PIN_3, 1);
+
+
+    while (1)
+    {
+        if (gpio_get(BTN_PIN_1)) {
+            printf("button1 pushed\n");
+            gpio_put(LED_PIN_1, 0);
+        }
+
+        if (gpio_get(BTN_PIN_2)) {
+            printf("button2 pushed\n");
+            gpio_put(LED_PIN_2, 0);
+        }
+
+        if (gpio_get(BTN_PIN_3)) {
+            printf("button3 pushed\n");
+            gpio_put(LED_PIN_3, 0);
+        }
+
+        sleep_ms(250);
     }
 }
 

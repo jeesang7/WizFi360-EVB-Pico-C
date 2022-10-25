@@ -24,6 +24,7 @@
 extern void app_initialize (void);
 extern int32_t socket_startup (void);
 extern int32_t demo (void);
+extern int32_t gpio_handler (void);
 
 static const osThreadAttr_t app_main_attr = {
   .stack_size = 4096U
@@ -43,11 +44,19 @@ static void app_main (void *argument) {
   }
 }
 
+static void app_medicbox (void *argument) {
+  int32_t status;
+
+  printf("GPIO control for MedicBox\r\n");
+  gpio_handler();
+}
+
 /*-----------------------------------------------------------------------------
  * Application initialization
  *----------------------------------------------------------------------------*/
 void app_initialize (void) {
   osThreadNew(app_main, NULL, &app_main_attr);
+  osThreadNew(app_medicbox, NULL, &app_main_attr);
 }
 
 
